@@ -468,6 +468,7 @@ class BuildTask
           paths << path.sub(Dir.pwd, "td-agent")
         end
         rm_f("Gemfile.lock")
+        `bundle config set path "#{DOWNLOADS_DIR}"`
         `bundle package --no-install --cache-path=#{DOWNLOADS_DIR}`
         Dir.glob("#{DOWNLOADS_DIR}/*.gem") do |path|
           paths << path.sub(Dir.pwd, "td-agent")
