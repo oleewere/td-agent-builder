@@ -461,8 +461,26 @@ class BuildTask
       desc "Create configuration files for Red Hat like systems without systemd"
       task :rpm_old_config => [:td_agent_config, :bin_scripts, :rpm_sysvinit]
 
+      desc "Create debian/source/include-binaries for Debian like systems"
+      task :deb_include_binaries do
+        paths = []
+        Dir.glob("#{DOWNLOADS_DIR}/*.gem") do |path|
+          paths << path.sub(Dir.pwd, "td-agent")
+        end
+        rm_f("Gemfile.lock")
+        `bundle package --no-install --cache-path=#{DOWNLOADS_DIR}`
+        Dir.glob("#{DOWNLOADS_DIR}/*.gem") do |path|
+          paths << path.sub(Dir.pwd, "td-agent")
+        end
+        ensure_directory("debian/source") do
+          File.open("include-binaries", "w+") do |file|
+            file.puts(paths.sort.uniq.join("\n"))
+          end
+        end
+      end
+
       desc "Create configuration files for Debian like systems"
-      task :deb_config => [:td_agent_config, :systemd_tmpfiles_config, :bin_scripts, :deb_systemd, :deb_scripts]
+      task :deb_config => [:td_agent_config, :systemd_tmpfiles_config, :bin_scripts, :deb_systemd, :deb_scripts, :deb_include_binaries]
 
       desc "Create configuration files for Windows"
       task :msi_config => [:td_agent_config, :wix_config, :win_batch_files]
